@@ -1,0 +1,370 @@
+import mysql.connector
+from mysql.connector import errorcode
+
+try:
+    # Kết nối với MySQL server mà không chỉ định cơ sở dữ liệu
+    db = mysql.connector.connect(
+        user='root',
+        password='123456',
+        host='127.0.0.1'
+    )
+
+    mycursor = db.cursor()
+
+    # Tạo cơ sở dữ liệu nếu chưa tồn tại
+    try:
+        mycursor.execute("CREATE DATABASE IF NOT EXISTS `new_database_1`")
+        print("Database `new_database_1` created or already exists.")
+    except mysql.connector.Error as err:
+        print(f"Failed creating database: {err}")
+        exit(1)
+
+    # Kết nối lại với cơ sở dữ liệu `new_database_1`
+    db.database = 'new_database_1'
+
+    # Lệnh SQL để tạo bảng trong cơ sở dữ liệu `new_database_1`
+    code_3 = ("CREATE TABLE IF NOT EXISTS `food` ("
+              "`ID` INT NOT NULL, "
+              "`Fish` VARCHAR(45) NULL, "
+              "`Salat` VARCHAR(45) NULL, "
+              "PRIMARY KEY (`ID`));")
+
+    # Thực thi lệnh tạo bảng
+    try:
+        mycursor.execute(code_3)
+        print("Table `food` created successfully in `new_database_1`.")
+
+        # Kiểm tra các bảng hiện có
+        mycursor.execute("SHOW TABLES")
+        tables = mycursor.fetchall()
+        print("Tables in `new_database_1`:")
+        for table in tables:
+            print(table)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        # Đóng cursor và kết nối
+        mycursor.close()
+        db.close()
+
+except mysql.connector.Error as err:
+    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        print("Something is wrong with your user name or password")
+    elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        print("Database does not exist")
+    else:
+        print(err)
+
+
+
+
+
+
+
+
+****************************************** BASIC DATABASE********************************************
+import mysql.connector
+
+db = mysql.connector.connect(user= 'root', password= '123456',host='127.0.0.1'
+                             ,database= 'new_database_1')
+
+code_1 = 'CREATE DATABASE ` new_database_1` ;'          # Tạo new_database trong MySQL
+# code_2 = 'DROP DATABASE ` new_database_2` ;'          # Xóa new_database trong MySQL
+code_3 = ("CREATE TABLE `new_database_1`.`food` (`ID` INT NOT NULL, `Fish` VARCHAR(45) NULL, `Salat` VARCHAR(45) NULL,PRIMARY KEY (`ID`));")
+# code_4 = "DROP TABLE `new_database`.`food_t`;"
+#
+# # Đổi tên table
+# code_5 = "ALTER TABLE `new_database`.`food`" \
+#           " RENAME TO `new_database`.`customer`;"
+
+# # Tìm kiếm tất cả databases hiện có
+# code_6 = 'SHOW DATABASES'
+
+# # Tìm kiếm tất cả table trong database được chọn
+# code_7 = 'SHOW TABLES'
+#
+# # Tìm kiếm dữ liệu trong table
+# code_8 = 'SELECT id,age FROM customer'
+#
+# # Tìm một dữ liệu đơn l
+# code_9 = 'SELECT name FROM customer WHERE id = 5'
+#
+# # Tìm ra một dữ liệu tương tự
+# code_10 = 'SELECT * FROM customer WHERE age LIKE "%4%"'
+
+
+# Lệnh chạy code
+mycursor = db.cursor()
+mycursor.execute(code_3)   #make database
+
+# Kết thúc lệnh
+mycursor.close()
+db.close()
+
+
+
+************************************** Kết nối database*******************************************
+import mysql.connector
+from mysql.connector import Error
+
+try:
+    # Kết nối tới MySQL Server
+    conn = mysql.connector.connect(
+        user='root',
+        password='123456',
+        host='127.0.0.1'
+    )
+    if conn.is_connected():
+        db = conn.get_server_info()
+        print("Connected to MySQL Server", db)
+        mycursor = conn.cursor()
+
+        # Kiểm tra và tạo cơ sở dữ liệu 'new_database_2' nếu chưa tồn tại
+        mycursor.execute("CREATE DATABASE IF NOT EXISTS new_database_2;")
+        print("Database 'new_database_2' created or already exists.")
+
+        # Kết nối lại với cơ sở dữ liệu 'new_database_2'
+        conn.database = 'new_database_2'
+        mycursor.execute("SELECT DATABASE();")
+        record = mycursor.fetchone()
+        print("Connected to database:", record[0])
+
+        # # Xóa bảng 'customer' nếu tồn tại
+        # mycursor.execute("DROP TABLE IF EXISTS customer;")
+        # print("Table 'customer' dropped if it existed.")
+
+except Error as e:
+    print("Error while connecting to MySQL", e)
+finally:
+    try:
+        if conn.is_connected():
+            mycursor.close()
+            conn.close()
+            print("Connection closed")
+    except NameError:
+        pass
+
+
+
+
+
+
+
+****************************** kết nối MySQL với Python và hiện lên PyQt bảng table****************************************
+import sys
+import mysql.connector
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
+from PyQt5.QtCore import QUrl
+from gui import Ui_MainWindow  # Đảm bảo file này nằm trong cùng thư mục hoặc trong PYTHONPATH
+
+
+
+db = mysql.connector.connect(user='root',password='123456',host='127.0.0.1',database='qlsv1')
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+
+        # Khai báo nút nhấn
+        # self.uic.Button_add_row.clicked.connect()
+        self.uic.Button_load_data.clicked.connect(self.load_data)
+
+
+    def load_data(self):
+        # MySQL
+        code_8 = 'SELECT * FROM sinh_vien LIMIT 0,20'
+
+        # Lệnh chạy code
+        mycursor = db.cursor()
+        mycursor.execute(code_8)
+        result = mycursor.fetchall()
+        print(result)
+
+        # Update db
+        db.commit()
+
+
+        #***********tabWidget*****************
+        # Tạo table với số hàng
+        self.uic.tableWidget.setRowCount(12)
+        # Tạo table với số cột
+        self.uic.tableWidget.setColumnCount(3)
+
+        # Ghi lên một ô bất kỳ
+        table_row = 0
+        for row in result:
+            self.uic.tableWidget.setItem(table_row, 0, QTableWidgetItem(str(row[0])))
+            self.uic.tableWidget.setItem(table_row, 1, QTableWidgetItem(str(row[1])))
+            self.uic.tableWidget.setItem(table_row, 2, QTableWidgetItem(str(row[2])))
+            table_row += 1
+
+
+if __name__ == "__main__":
+    # Chạy ứng dụng
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+
+
+
+
+**************************************Update, chỉnh sửa trực tiếp từ Table Widget và lưu vào mysql***************************************
+import sys
+import mysql.connector
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
+from PyQt5.QtCore import QUrl
+from gui import Ui_MainWindow  # Đảm bảo file này nằm trong cùng thư mục hoặc trong PYTHONPATH
+
+
+db = mysql.connector.connect(user='root',password='123456',host='127.0.0.1',database='qlsv1')
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+
+        # Khai báo nút nhấn
+        # self.uic.Button_add_row.clicked.connect()
+        self.uic.Button_load_data.clicked.connect(self.show_data)
+        self.uic.Button_update.clicked.connect(self.save_data)
+
+
+    def show_data(self):
+        try:
+            # clear error on the screen
+            self.uic.textEdit_data.setText('')
+
+            # read text from combobox database
+            choose_database = self.uic.comboBox_choose_database.currentText()
+            print(choose_database)
+
+            # real text from comboBox table
+            choose_table = self.uic.comboBox_choose_table.currentText()
+            print(choose_table)
+
+
+            # command to choose table custom
+            code_8 = 'SELECT * FROM {}'.format(choose_table)
+
+            # Lệnh chạy code
+            mycursor = db.cursor()      # create mycursor
+            mycursor.execute(code_8)    # execute command
+            result = mycursor.fetchall()  # result
+            print(result)
+
+            # Update db
+            db.commit()
+
+            # Load dữ liệu lên
+            a = 0
+            for row in result:
+                a = len(row)
+                self.uic.tableWidget.setRowCount(len(result)) # Tạo table với số hàng
+                self.uic.tableWidget.setColumnCount(a) # Tạo table với số cột
+
+            # Fill data to tabWidget
+            for row_number, row_data in enumerate(result):
+                for column_number, data in enumerate(row_data):
+                    self.uic.tableWidget.setItem(row_number,column_number,QTableWidgetItem(str(data)))
+
+        except:
+            self.uic.textEdit_data.setText("no data")
+            print("no data")
+
+    def save_data(self):
+        # Tìm ra tọa độ của item cần thay thế
+        currentItems = 0
+        for currentItems in self.uic.tableWidget.selectedItems():
+            print("row: ", currentItems.row())
+            print("column: ", currentItems.column())
+            print("value: ", currentItems.text())
+
+        try:
+            # connect to MySQL
+            db = mysql.connector.connect(user='root', password='123456', host='127.0.0.1', database='qlsv1')
+
+            ID_value = self.uic.tableWidget.item(currentItems.row(),0).text()
+            print("ID:",ID_value)
+
+            #take value
+            row_val = currentItems.text()
+            row_po = ID_value
+
+            if currentItems.column() == 2 :
+                sql = "UPDATE `sinh_vien` SET `age`= %s WHERE `ID` = %s"
+                val = (row_val,row_po)
+                mycursor = db.cursor()
+                mycursor.execute(sql,val)
+                db.commit()
+                print(mycursor.rowcount,"record(s) affected")
+
+            if currentItems.column() == 1 :
+                sql = "UPDATE `sinh_vien` SET `age`= %s WHERE `ID` = %s"
+                val = (row_val,row_po)
+                mycursor = db.cursor()
+                mycursor.execute(sql,val)
+                db.commit()
+                print(mycursor.rowcount,"record(s) affected")
+        except:
+            print("no data")
+
+
+
+if __name__ == "__main__":
+    # Chạy ứng dụng
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+********************************** Chuyển database thành file Excel******************************************************
+import mysql.connector
+from openpyxl import Workbook
+
+db = mysql.connector.connect(user='root',password='123456',host='127.0.0.1',database='qlsv1')
+
+#RUN
+cur = db.cursor()
+# mycursor.execute(code1)
+# for item in val:
+#     mycursor.execute(code2,item)
+
+try:
+    cur.execute("SELECT * FROM sinh_vien")
+    result = cur.fetchall()
+
+    # Thêm lại table_name ( tại khi in ra report thì bị mất tiêu đề ID, Name, Age)
+    table_name  = [i[0] for i in cur.description]
+    print((table_name))
+    print(result)
+
+    # Khởi tạo excel
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "mysql_data"
+    ws.append(table_name)      # bắt đầu ghi dữ liệu lên file excel
+    for row in result:
+        ws.append(row)
+    wb.save("Data from mySQL.xlsx")
+    db.commit()
+except:
+    print("something is wrong")
+
+db.close()

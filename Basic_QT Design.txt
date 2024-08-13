@@ -1,0 +1,415 @@
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
+from Qtgui import Ui_MainWindow  # Import từ file Qtgui.py
+from PyQt5 import QtWidgets
+from Qtgui2 import Ui_Form       # Import từ file Qtgui2.py ( QtWidgets: file phụ)
+
+#Thư viện mở rộng
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+import matplotlib.pyplot as plt
+import numpy as np 
+
+class MainWindow:
+    def __init__(self):
+        self.main_win = QMainWindow()  # main_win: đại diện cho thư viện QMainWindow
+        self.uic = Ui_MainWindow()  # uic thay thế cho Ui_MainWindow
+        self.uic.setupUi(self.main_win)  # Thiết lập giao diện cho main_win
+
+        #Khai báo nút nhấn chuyển qua màn hình thứ 2
+        self.uic.Button_start.clicked.connect(self.Open_Subwindow)
+ 
+    def Open_Subwindow(self):            # Khai báo màn hình phụ 
+        self.Second_window = QtWidgets.QMainWindow()     
+        self.uic1 = Ui_Form()
+        self.uic1.setupUi(self.Second_window)
+        self.Second_window.show()
+
+    def show(self):
+        self.main_win.show()
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+
+
+
+******************************màn hình loại 2**********************************
+import sys
+import time
+import threading
+
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTableWidgetItem
+from Qtgui import Ui_MainWindow  # Đảm bảo file Qtgui.py nằm trong cùng thư mục hoặc trong PYTHONPATH
+from PyQt5 import QtWidgets
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+import numpy as np
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        # the way app working
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+
+        self.a = False          # Khởi tạo biến a ban đầu
+        # Kết nối nút nhấn Start, Stop
+        self.uic.Button_start.clicked.connect(self.start_loop)
+
+    def start_loop(self):
+        print ("press start")
+        global a
+        self.a = True               # Thay vì a == True
+        self.loop()
+
+    def closeEvent(self, event):                    # Lệnh để nhấn nút X và tắt giao diện 
+        print("press stop")
+        global a
+        self.a = False              # Thay vì a == False
+        self.loop()
+
+    def loop(self):
+        print("ready")
+        def run():
+             while self.a:
+                print("run")
+                time.sleep(0.5)
+                if self.a == False:      # Nếu a = False
+                    break
+
+        t1 = threading.Thread(target=run)
+        t1.start()
+
+
+
+if __name__ == "__main__":
+    # run app
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+
+
+
+
+*******************************Tạo luồng chạy Thread ******************************************
+import sys
+import time
+import threading
+import os
+import glob
+import numpy as np
+
+from PyQt5 import QtWidgets
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTableWidgetItem
+from Qtgui import Ui_MainWindow  # Đảm bảo file Qtgui.py nằm trong cùng thư mục hoặc trong PYTHONPATH
+from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal,QObject ,QTimer
+from PyQt5.QtWidgets import QFrame,QLineEdit,QButtonGroup
+
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        # self.c = communicate()              # khởi tạo self.c
+        # the way app working
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+        self.thread = {}         # Biến thread thông thươờng được tạo ra bằng rỗng
+
+        # Kết nối nút nhấn Start, Stop
+        self.uic.Button_start_1.clicked.connect(self.start_1)
+        self.uic.Button_start_2.clicked.connect(self.start_2)
+        self.uic.Button_stop_1.clicked.connect(self.stop_1)
+        self.uic.Button_stop_2.clicked.connect(self.stop_2)
+
+    def start_1(self):
+        self.thread[1] = ThreadClass(index=1)
+        self.thread[1].start()
+
+        self.thread[1].signal.connect(self.my_function)
+        self.uic.Button_start_1.setEnabled(False)
+        self.uic.Button_stop_1.setEnabled(True)
+    def start_2(self):
+        self.thread[2] = ThreadClass(index=2)
+        self.thread[2].start()
+
+        self.thread[2].signal.connect(self.my_function)
+        self.uic.Button_start_2.setEnabled(False)
+        self.uic.Button_stop_2.setEnabled(True)
+    def stop_1(self):
+        self.thread[1].stop()           # hoặc self.thread[1].terminate() : dùng để dừng classthread
+        self.uic.Button_stop_1.setEnabled(False)
+        self.uic.Button_start_1.setEnabled(True)
+
+    def stop_2(self):
+        self.thread[2].stop()
+        self.uic.Button_stop_2.setEnabled(False)
+        self.uic.Button_start_2.setEnabled(True)
+
+    def my_function(self,counter):        #Hàm để bắt tín hiệu(sender) và truyền giá trị counter
+        m = counter
+        i = self.sender().index             # Hàm sender dùng để bắt tin hiệu truyền đi
+        if i == 1:
+            self.uic.lcdNumber_1.display(m)
+        if i == 2:
+            self.uic.lcdNumber_2.display(m)
+
+class ThreadClass(QtCore.QThread):    # Khởi tạo class chạy đa luồng
+    signal = pyqtSignal(int)          # Biến khởi tạo để chứa tín hiệu muốn trả về   ,  thư viện pyqtSignal : là thư viện tạo ra tín hiệu
+
+    def __init__(self,index=0):       #  Khởi tạo index ban đầu = 0
+        super().__init__()
+        self.index = index
+
+    def run(self):
+        print('Starting thread....',self.index)
+        counter = 0
+        while True:
+            counter += 1
+            print(counter)
+            time.sleep(1)
+            if counter == 10:
+                counter = 0
+            self.signal.emit(counter)       # Cho phép truyền ra tín hiệu counter
+
+    def stop(self):
+        print('Stopping thread...',self.index)
+        self.terminate()        # Dùng để dừng thread
+
+
+
+if __name__ == "__main__":
+    # run app
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+
+
+
+
+
+
+*******************************Chạy webcam lên Qt**********************************
+import sys
+import cv2
+import numpy as np
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import pyqtSignal, QThread
+from gui import Ui_MainWindow  # Đảm bảo file này nằm trong cùng thư mục hoặc trong PYTHONPATH
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+        self.thread = {}  # Biến thread thông thường được tạo ra bằng rỗng
+
+        # Kết nối nút nhấn Start, Stop
+        self.uic.Button_start_1.clicked.connect(self.start_video)
+        self.uic.Button_stop_1.clicked.connect(self.stop_video)
+
+    def start_video(self):
+        self.thread[1] = Capture_video(index=1)
+        self.thread[1].start()
+        self.thread[1].signal.connect(self.show_webcam)
+
+    def stop_video(self):
+        if 1 in self.thread:
+            self.thread[1].stop()
+            self.thread[1].wait()
+
+    def closeEvent(self, event):
+        self.stop_video()
+
+    def show_webcam(self, cv_img):
+        """Cập nhật label với hình ảnh mới từ opencv"""
+        cv_img = cv2.flip(cv_img,1)                 # Lật tấm hình lại để xử lý 
+        qt_img = self.convert_cv_qt(cv_img)
+        self.uic.label.setPixmap(qt_img)
+
+    def convert_cv_qt(self, cv_img):
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        bytes_per_line = ch * w
+        convert_to_Qt_format = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        p = convert_to_Qt_format.scaled(800, 600, QtCore.Qt.KeepAspectRatio)
+        return QPixmap.fromImage(p)
+
+class Capture_video(QThread):  # Khởi tạo class chạy đa luồng
+    signal = pyqtSignal(np.ndarray)  # Biến khởi tạo để chứa tín hiệu muốn trả về
+
+    def __init__(self, index=0):  # Khởi tạo index ban đầu = 0
+        super().__init__()
+        self.index = index
+        self._is_running = True
+
+    def run(self):
+        print('Starting thread....', self.index)
+        cap = cv2.VideoCapture(0)
+        while self._is_running:
+            ret, cv_img = cap.read()
+            if ret:
+                self.signal.emit(cv_img)  # Cho phép truyền ra tín hiệu counter
+        cap.release()
+
+    def stop(self):
+        print('Stopping thread...', self.index)
+        self._is_running = False
+
+if __name__ == "__main__":
+    # Chạy ứng dụng
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+
+
+
+
+
+*********************************** Chạy nhiều màn hình trên 1 màn hình***************************************************
+import sys
+import cv2
+import numpy as np
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import pyqtSignal, QThread
+from gui import Ui_MainWindow  # Đảm bảo file này nằm trong cùng thư mục hoặc trong PYTHONPATH
+from gui1 import Ui_Form
+from gui2 import Ui_MainWindow1
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+        self.thread = {}  # Biến thread thông thường được tạo ra bằng rỗng
+
+        # Kết nối nút nhấn Start
+        self.uic.Button_start_1.clicked.connect(self.show_screen)
+
+    def show_screen(self):
+        # Ẩn màn hình chính đi
+        self.hide()
+        # Hiện màn hình phụ 1 UI_Form
+        self.sub_win = QMainWindow()
+        self.uic1 = Ui_Form()
+        self.uic1.setupUi(self.sub_win)
+        self.sub_win.show()
+
+        # Hiện màn hình phụ 2 Ui_MainWindow1
+        self.sub_win_1 = QMainWindow()
+        self.uic2 = Ui_MainWindow1()
+        self.uic2.setupUi(self.sub_win_1)
+        self.sub_win_1.show()
+
+
+if __name__ == "__main__":
+    # Chạy ứng dụng
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
+
+
+
+********************************Capture_Video*********************************************
+import sys
+import cv2
+import numpy as np
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import pyqtSignal, QThread
+from gui import Ui_MainWindow  # Đảm bảo file này nằm trong cùng thư mục hoặc trong PYTHONPATH
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.uic = Ui_MainWindow()  # Tạo đối tượng UI
+        self.uic.setupUi(self)  # Thiết lập giao diện
+        self.thread = {}  # Biến thread thông thường được tạo ra bằng rỗng
+
+        # Kết nối nút nhấn Start, Stop
+        self.uic.Button_start_1.clicked.connect(self.start_video)
+        self.uic.Button_stop_1.clicked.connect(self.stop_video)
+
+    def start_video(self):
+        self.thread[1] = Capture_video(index=1)
+        self.thread[1].start()			# chạy hàm def run 
+        self.thread[1].signal.connect(self.show_webcam)
+
+    def stop_video(self):
+        if 1 in self.thread:
+            self.thread[1].stop()
+            self.thread[1].wait()
+
+    def closeEvent(self, event):
+        self.stop_video()
+
+    def show_webcam(self, cv_img):
+        """Cập nhật label với hình ảnh mới từ opencv"""
+        cv_img = cv2.flip(cv_img,1)                 # Lật tấm hình lại để xử lý
+        qt_img = self.convert_cv_qt(cv_img)
+        self.uic.label.setPixmap(qt_img)
+
+    def convert_cv_qt(self, cv_img):
+        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        h, w, ch = rgb_image.shape
+        bytes_per_line = ch * w
+        convert_to_Qt_format = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        p = convert_to_Qt_format.scaled(800, 600, QtCore.Qt.KeepAspectRatio)
+        return QPixmap.fromImage(p)
+
+class Capture_video(QThread):  # Khởi tạo class chạy đa luồng
+    signal = pyqtSignal(np.ndarray)  # Biến khởi tạo để chứa tín hiệu muốn trả về
+
+    def __init__(self, index=0):  # Khởi tạo index ban đầu = 0
+        super().__init__()
+        self.index = index
+        self._is_running = True
+
+    def run(self):
+        print('Starting thread....', self.index)
+        cap = cv2.VideoCapture(0)
+        while self._is_running:
+            ret, cv_img = cap.read()
+            if ret:
+                self.signal.emit(cv_img)  # Cho phép truyền ra tín hiệu counter
+        cap.release()
+
+    def stop(self):
+        print('Stopping thread...', self.index)
+        self._is_running = False
+
+if __name__ == "__main__":
+    # Chạy ứng dụng
+    app = QApplication(sys.argv)
+    main_win = MainWindow()
+    main_win.show()
+    sys.exit(app.exec())
